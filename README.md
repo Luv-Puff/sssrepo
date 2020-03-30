@@ -1,2 +1,2 @@
 # ACGN CRAWLER!!!
-empty repo~~~
+crawl ACGN stock!
