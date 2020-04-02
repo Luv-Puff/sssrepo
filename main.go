@@ -2,48 +2,42 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
-	"regexp"
 	"strings"
+
+	"github.com/PuerkitoBio/goquery"
+	"github.com/gocolly/colly"
 )
 
 func main() {
-	parseurls("https://acgn-stock.com/company/1")
+	crawl("https://acgn-stock.com/company/1")
 }
 
-func crawl(url string) string {
-	clinet := &http.Client{}
-	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("User-Agent", "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)")
-	resp, err := clinet.Do(req)
-	if err != nil {
-		fmt.Println("Http get err:", err)
-		return ""
-	}
-	if resp.StatusCode != 200 {
-		fmt.Println("Http status code:", resp.StatusCode)
-		return ""
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		fmt.Println("err:", err)
-		return ""
-	}
-	return string(body)
-}
+func crawl(url string) {
+	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"))
+	c.OnRequest(func(r *colly.Request) {
+		fmt.Println("Visiting", r.URL)
+	})
+	c.OnError(func(_ *colly.Response, err error) {
+		fmt.Println("Something went wrong:", err)
+	})
 
-func parseurls(url string) {
-	body := crawl(url)
-	body = strings.Replace(body, "\n", "", -1)
-	// rp := regexp.MustCompile(`<div class= company-card company-card-default>(.*?)</div>`)
-	title := regexp.MustCompile(`<a href="/company/detail/(.*?)</a>`)
-	company := title.FindAllStringSubmatch(body, -1)
-	// k := title.FindAllStringSubmatch(body, -1)
-	// fmt.Println(title.MatchString(k[0][0]))
-	for _, item := range company {
-		fmt.Println(item[0])
-	}
+	c.OnResponse(func(r *colly.Response) {
+		fmt.Println("Visited", r.Request.URL)
+	})
 
+	c.OnHTML(".media", func(e *colly.HTMLElement) {
+		e.DOM.Find("div.title").Each(func(i int, s *goquery.Selection) {
+			fmt.Println(strings.TrimSpace(s.Text()))
+		})
+	})
+
+	c.OnHTML(".page-item a[aria-label='下一頁']", func(e *colly.HTMLElement) {
+		e.Request.Visit(e.Attr("href"))
+	})
+
+	c.OnScraped(func(r *colly.Response) {
+		fmt.Println("Finished", r.Request.URL)
+	})
+
+	c.Visit(url)
 }
