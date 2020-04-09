@@ -7,36 +7,39 @@ import (
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/gocolly/colly"
 	"github.com/joho/godotenv"
-
-	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 func main() {
 	godotenv.Load()
-	var (
-		port      = os.Getenv("PORT")       // sets automatically
-		publicURL = os.Getenv("PUBLIC_URL") // you must add it to your config vars
-		token     = os.Getenv("TOKEN")      // you must add it to your config vars
-	)
-
-	webhook := &tb.Webhook{
-		Listen:   ":" + port,
-		Endpoint: &tb.WebhookEndpoint{PublicURL: publicURL},
-	}
-	pref := tb.Settings{
-		Token:  token,
-		Poller: webhook,
-	}
-
-	b, err := tb.NewBot(pref)
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("TOKEN"))
 	if err != nil {
-		log.Fatal(err)
+		log.Panic(err)
 	}
-	b.Handle("/hello", func(m *tb.Message) {
-		b.Send(m.Sender, "Hi!")
-	})
+
+	bot.Debug = true
+
+	log.Printf("Authorized on account %s", bot.Self.UserName)
+
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+
+	updates, err := bot.GetUpdatesChan(u)
+
+	for update := range updates {
+		if update.Message == nil { // ignore any non-Message Updates
+			continue
+		}
+
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+		msg.ReplyToMessageID = update.Message.MessageID
+
+		if _, err := bot.Send(msg); err != nil {
+			log.Panic(err)
+		}
+	}
 	crawl("https://acgn-stock.com/company/1")
 }
 
