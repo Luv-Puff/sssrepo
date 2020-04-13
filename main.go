@@ -49,12 +49,6 @@ func main() {
 			}
 			bot.Send(msg)
 		}
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "hi")
-		msg.ReplyToMessageID = update.Message.MessageID
-
-		if _, err := bot.Send(msg); err != nil {
-			log.Panic(err)
-		}
 	}
 }
 
