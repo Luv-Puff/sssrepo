@@ -32,39 +32,54 @@ func main() {
 		if update.Message == nil { // ignore any non-Message Updates
 			continue
 		}
+		log.Printf("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
-		msg := tgbotapi.NewMessage(update.Message.Chat.ID, update.Message.Text)
+		if update.Message.IsCommand() {
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+			switch update.Message.Command() {
+			case "help":
+				msg.Text = "type /sayhi or /status."
+			case "colly":
+				crawl("https://acgn-stock.com/company/1")
+				msg.Text = "Hi :)"
+			case "status":
+				msg.Text = "I'm not ok."
+			default:
+				msg.Text = "I don't know that command"
+			}
+			bot.Send(msg)
+		}
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "hi")
 		msg.ReplyToMessageID = update.Message.MessageID
 
 		if _, err := bot.Send(msg); err != nil {
 			log.Panic(err)
 		}
 	}
-	crawl("https://acgn-stock.com/company/1")
 }
 
 func crawl(url string) {
 	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"))
 	c.OnRequest(func(r *colly.Request) {
-		fmt.Println("Visiting", r.URL)
+		log.Println("Visiting", r.URL)
 	})
 	c.OnError(func(_ *colly.Response, err error) {
-		fmt.Println("Something went wrong:", err)
+		log.Println("Something went wrong:", err)
 	})
 
 	c.OnResponse(func(r *colly.Response) {
-		fmt.Println("Visited", r.Request.URL)
+		log.Println("Visited", r.Request.URL)
 	})
 
 	c.OnHTML(".media", func(e *colly.HTMLElement) {
 		e.DOM.Find("div.title").Each(func(i int, s *goquery.Selection) {
-			fmt.Println(strings.TrimSpace(s.Text()))
+			log.Println(strings.TrimSpace(s.Text()))
 		})
 	})
 
-	c.OnHTML(".page-item a[aria-label='下一頁']", func(e *colly.HTMLElement) {
-		e.Request.Visit(e.Attr("href"))
-	})
+	// c.OnHTML(".page-item a[aria-label='下一頁']", func(e *colly.HTMLElement) {
+	// 	e.Request.Visit(e.Attr("href"))
+	// })
 
 	c.OnScraped(func(r *colly.Response) {
 		fmt.Println("Finished", r.Request.URL)
