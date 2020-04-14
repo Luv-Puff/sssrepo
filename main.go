@@ -40,8 +40,8 @@ func main() {
 			case "help":
 				msg.Text = "type /sayhi or /status."
 			case "colly":
-				crawl("https://acgn-stock.com/company/1")
-				msg.Text = "Hi :)"
+				wife := crawl("https://acgn-stock.com/company/1")
+				msg.Text = wife[0]
 			case "status":
 				msg.Text = "I'm not ok."
 			default:
@@ -52,7 +52,8 @@ func main() {
 	}
 }
 
-func crawl(url string) {
+func crawl(url string) []string {
+	var wifus []string
 	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"))
 	c.OnRequest(func(r *colly.Request) {
 		log.Println("Visiting", r.URL)
@@ -68,6 +69,7 @@ func crawl(url string) {
 	c.OnHTML(".media", func(e *colly.HTMLElement) {
 		e.DOM.Find("div.title").Each(func(i int, s *goquery.Selection) {
 			log.Println(strings.TrimSpace(s.Text()))
+			wifus = append(wifus, strings.TrimSpace(s.Text()))
 		})
 	})
 
@@ -80,4 +82,5 @@ func crawl(url string) {
 	})
 
 	c.Visit(url)
+	return wifus
 }
