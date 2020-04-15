@@ -41,7 +41,10 @@ func main() {
 				msg.Text = "type /sayhi or /status."
 			case "colly":
 				wife := crawl("https://acgn-stock.com/company/1")
-				msg.Text = wife[0]
+				// msg.Text = wife[0]
+				for _, wifu := range wife {
+					msg.Text = wifu
+				}
 			case "status":
 				msg.Text = "I'm not ok."
 			default:
