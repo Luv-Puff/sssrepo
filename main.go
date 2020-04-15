@@ -12,6 +12,15 @@ import (
 	"github.com/joho/godotenv"
 )
 
+type waifustock struct {
+	name    string
+	price   string //股價
+	capital string //資本額
+	value   string //市值
+	release string //釋股量
+	surplus string //盈餘
+}
+
 func main() {
 	godotenv.Load()
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TOKEN"))
@@ -39,18 +48,22 @@ func main() {
 			switch update.Message.Command() {
 			case "help":
 				msg.Text = "type /sayhi or /status."
+				bot.Send(msg)
 			case "colly":
 				wife := crawl("https://acgn-stock.com/company/1")
 				// msg.Text = wife[0]
 				for _, wifu := range wife {
 					msg.Text = wifu
+					bot.Send(msg)
 				}
 			case "status":
 				msg.Text = "I'm not ok."
+				bot.Send(msg)
 			default:
 				msg.Text = "I don't know that command"
+				bot.Send(msg)
 			}
-			bot.Send(msg)
+			//bot.Send(msg)
 		}
 	}
 }
