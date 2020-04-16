@@ -13,12 +13,12 @@ import (
 )
 
 type waifustock struct {
-	name    string `json:"name,omitempty"`
-	price   string `json:"price,omitempty"`   //股價
-	capital string `json:"capital,omitempty"` //資本額
-	value   string `json:"value,omitempty"`   //市值
-	release string `json:"release,omitempty"` //釋股量
-	surplus string `json:"surplus,omitempty"` //盈餘
+	Name    string `json:"name,omitempty"`
+	Price   string `json:"price,omitempty"`   //股價
+	Capital string `json:"capital,omitempty"` //資本額
+	Value   string `json:"value,omitempty"`   //市值
+	Release string `json:"release,omitempty"` //釋股量
+	Surplus string `json:"surplus,omitempty"` //盈餘
 }
 
 type wifusArray struct {
@@ -46,12 +46,12 @@ func crawl(url string) {
 
 	c.OnHTML("div.company-card.company-card-default", func(e *colly.HTMLElement) {
 		jr := &waifustock{
-			name:    strings.TrimSpace(e.DOM.Find("div.title").Text()),
-			price:   strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(2).Text()),
-			capital: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(3).Text()),
-			value:   strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(4).Text()),
-			release: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(5).Text()),
-			surplus: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(6).Text()),
+			Name:    strings.TrimSpace(e.DOM.Find("div.title").Text()),
+			Price:   strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(2).Text()),
+			Capital: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(3).Text()),
+			Value:   strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(4).Text()),
+			Release: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(5).Text()),
+			Surplus: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(6).Text()),
 		}
 
 		jsondata, _ := json.Marshal(jr)
