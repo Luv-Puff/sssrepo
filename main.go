@@ -1,27 +1,75 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"strings"
 
-	"github.com/PuerkitoBio/goquery"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
 	"github.com/gocolly/colly"
 	"github.com/joho/godotenv"
 )
 
 type waifustock struct {
-	name    string
-	price   string //股價
-	capital string //資本額
-	value   string //市值
-	release string //釋股量
-	surplus string //盈餘
+	name    string `json:"name,omitempty"`
+	price   string `json:"price,omitempty"`   //股價
+	capital string `json:"capital,omitempty"` //資本額
+	value   string `json:"value,omitempty"`   //市值
+	release string `json:"release,omitempty"` //釋股量
+	surplus string `json:"surplus,omitempty"` //盈餘
+}
+
+type wifusArray struct {
+	wifus []waifustock
 }
 
 func main() {
+	crawl("https://acgn-stock.com/company/1")
+	// tele()
+}
+
+func crawl(url string) {
+
+	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"))
+	c.OnRequest(func(r *colly.Request) {
+		log.Println("Visiting", r.URL)
+	})
+	c.OnError(func(_ *colly.Response, err error) {
+		log.Println("Something went wrong:", err)
+	})
+
+	c.OnResponse(func(r *colly.Response) {
+		log.Println("Visited", r.Request.URL)
+	})
+
+	c.OnHTML("div.company-card.company-card-default", func(e *colly.HTMLElement) {
+		jr := &waifustock{
+			name:    strings.TrimSpace(e.DOM.Find("div.title").Text()),
+			price:   strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(2).Text()),
+			capital: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(3).Text()),
+			value:   strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(4).Text()),
+			release: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(5).Text()),
+			surplus: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(6).Text()),
+		}
+
+		jsondata, _ := json.Marshal(jr)
+		fmt.Println(string(jsondata))
+	})
+
+	// c.OnHTML(".page-item a[aria-label='下一頁']", func(e *colly.HTMLElement) {
+	// 	e.Request.Visit(e.Attr("href"))
+	// })
+
+	c.OnScraped(func(r *colly.Response) {
+		fmt.Println("Finished", r.Request.URL)
+	})
+
+	c.Visit(url)
+}
+
+func tele() {
 	godotenv.Load()
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TOKEN"))
 	if err != nil {
@@ -50,12 +98,12 @@ func main() {
 				msg.Text = "type /sayhi or /status."
 				bot.Send(msg)
 			case "colly":
-				wife := crawl("https://acgn-stock.com/company/1")
+				crawl("https://acgn-stock.com/company/1")
 				// msg.Text = wife[0]
-				for _, wifu := range wife {
-					msg.Text = wifu
-					bot.Send(msg)
-				}
+				// for _, wifu := range wife {
+				// 	msg.Text = wifu
+				// 	bot.Send(msg)
+				// }
 			case "status":
 				msg.Text = "I'm not ok."
 				bot.Send(msg)
@@ -66,37 +114,4 @@ func main() {
 			//bot.Send(msg)
 		}
 	}
-}
-
-func crawl(url string) []string {
-	var wifus []string
-	c := colly.NewCollector(colly.UserAgent("Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"))
-	c.OnRequest(func(r *colly.Request) {
-		log.Println("Visiting", r.URL)
-	})
-	c.OnError(func(_ *colly.Response, err error) {
-		log.Println("Something went wrong:", err)
-	})
-
-	c.OnResponse(func(r *colly.Response) {
-		log.Println("Visited", r.Request.URL)
-	})
-
-	c.OnHTML(".media", func(e *colly.HTMLElement) {
-		e.DOM.Find("div.title").Each(func(i int, s *goquery.Selection) {
-			log.Println(strings.TrimSpace(s.Text()))
-			wifus = append(wifus, strings.TrimSpace(s.Text()))
-		})
-	})
-
-	// c.OnHTML(".page-item a[aria-label='下一頁']", func(e *colly.HTMLElement) {
-	// 	e.Request.Visit(e.Attr("href"))
-	// })
-
-	c.OnScraped(func(r *colly.Response) {
-		fmt.Println("Finished", r.Request.URL)
-	})
-
-	c.Visit(url)
-	return wifus
 }
