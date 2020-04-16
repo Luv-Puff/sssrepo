@@ -26,8 +26,8 @@ type wifusArray struct {
 }
 
 func main() {
-	crawl("https://acgn-stock.com/company/1")
-	// tele()
+	// crawl("https://acgn-stock.com/company/1")
+	tele()
 }
 
 func crawl(url string) {
@@ -99,6 +99,8 @@ func tele() {
 				bot.Send(msg)
 			case "colly":
 				crawl("https://acgn-stock.com/company/1")
+				msg.Text = "Done!"
+				bot.Send(msg)
 				// msg.Text = wife[0]
 				// for _, wifu := range wife {
 				// 	msg.Text = wifu
