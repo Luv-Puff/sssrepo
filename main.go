@@ -26,8 +26,8 @@ type wifusArray struct {
 }
 
 func main() {
-	crawl("https://acgn-stock.com/company/1")
-	//tele()
+	//crawl("https://acgn-stock.com/company/1")
+	tele()
 }
 
 func crawl(url string) {
@@ -47,11 +47,11 @@ func crawl(url string) {
 	c.OnHTML("div.company-card.company-card-default", func(e *colly.HTMLElement) {
 		jr := &waifustock{
 			Name:    strings.TrimSpace(e.DOM.Find("div.title").Text()),
-			Price:   strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(2).Text()),
-			Capital: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(3).Text()),
-			Value:   strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(4).Text()),
-			Release: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(5).Text()),
-			Surplus: strings.TrimSpace(e.DOM.Find("div.row.row-info.d-flex.justify-content-between").Eq(6).Text()),
+			Price:   strings.TrimSpace(e.DOM.Find("p").Eq(1).Text()),
+			Capital: strings.TrimSpace(e.DOM.Find("p").Eq(3).Text()),
+			Value:   strings.TrimSpace(e.DOM.Find("p").Eq(5).Text()),
+			Release: strings.TrimSpace(e.DOM.Find("p").Eq(7).Text()),
+			Surplus: strings.TrimSpace(e.DOM.Find("p").Eq(9).Text()),
 		}
 
 		jsondata, _ := json.Marshal(jr)
