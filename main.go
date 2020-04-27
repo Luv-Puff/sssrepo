@@ -26,8 +26,8 @@ type wifusArray struct {
 }
 
 func main() {
-	// crawl("https://acgn-stock.com/company/1")
-	tele()
+	crawl("https://acgn-stock.com/company/1")
+	//tele()
 }
 
 func crawl(url string) {
